@@ -4,55 +4,70 @@
 
 {% block content %}
 
-<!-- Hero banner -->
-<section class="bg-gradient-to-br from-blue-900 to-blue-500 text-white rounded-2xl px-8 py-10 mt-8 mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+<!-- Page header -->
+<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mt-8 mb-7">
   <div>
-    <h1 class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">The Everyday American Basket</h1>
-    <p class="text-blue-100 max-w-xl text-base md:text-lg leading-relaxed">
-      How much does everyday life actually cost? We track 10 common goods using official
-      US government data — and show you how prices have changed over time.
+    <p class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1">Dashboard</p>
+    <h1 class="text-2xl md:text-3xl font-extrabold text-white leading-tight">The Everyday American Basket</h1>
+    <p class="text-sm text-zinc-500 mt-1 max-w-xl">
+      Tracking 10 common goods with official US government data.
     </p>
   </div>
-  <div class="text-sm text-blue-200 md:whitespace-nowrap pt-1">
-    Last updated: <strong class="text-white">{{ last_updated }}</strong>
+  <div class="flex items-center gap-2 text-xs text-zinc-600 bg-[#13131a] border border-white/[0.07] rounded-lg px-3 py-2 self-start sm:self-auto whitespace-nowrap">
+    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+    Updated <span class="text-zinc-400 ml-1">{{ last_updated }}</span>
   </div>
-</section>
+</div>
 
 <!-- Price cards grid -->
-<section class="mb-12">
-  <h2 class="text-xl font-bold text-slate-800 mb-5">Current Prices</h2>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+<section class="mb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-semibold text-zinc-400 uppercase tracking-widest">Current Prices</h2>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
     {% for s in summaries %}
     <a href="/good/{{ s.slug }}"
-       class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 block no-underline group">
+       class="group relative bg-[#13131a] border border-white/[0.07] rounded-xl p-4 hover:bg-[#1a1a24] hover:border-white/[0.12] transition-all duration-200 block overflow-hidden">
 
-      <div class="flex items-center gap-2 mb-3">
-        <span class="text-2xl leading-none">{{ s.emoji }}</span>
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">{{ s.name }}</span>
+      <!-- Colored top accent bar based on trend -->
+      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl
+        {% if s.pct_change_1y is not none and s.pct_change_1y > 0 %}bg-rose-500
+        {% elif s.pct_change_1y is not none and s.pct_change_1y < 0 %}bg-emerald-500
+        {% else %}bg-zinc-700{% endif %}">
       </div>
 
-      <div class="text-2xl font-extrabold text-slate-800 leading-tight mb-1">
-        {% if s.latest_price is not none %}
-          ${{ "%.2f"|format(s.latest_price) }}
-          <span class="text-xs font-normal text-slate-400 ml-0.5">{{ s.unit }}</span>
-        {% else %}
-          <span class="text-base font-normal text-slate-400">No data yet</span>
+      <!-- Header row -->
+      <div class="flex items-start justify-between mb-3 mt-1">
+        <span class="text-xl leading-none">{{ s.emoji }}</span>
+        {% if s.pct_change_1y is not none %}
+          <span class="text-xs font-bold px-1.5 py-0.5 rounded-md
+            {% if s.pct_change_1y > 0 %}text-rose-400 bg-rose-500/10
+            {% elif s.pct_change_1y < 0 %}text-emerald-400 bg-emerald-500/10
+            {% else %}text-zinc-500 bg-zinc-700/30{% endif %}">
+            {% if s.pct_change_1y > 0 %}▲{% elif s.pct_change_1y < 0 %}▼{% else %}—{% endif %}
+            {{ s.pct_change_1y | abs | round(1) }}%
+          </span>
         {% endif %}
       </div>
 
-      {% if s.pct_change_1y is not none %}
-        <div class="text-xs font-semibold mb-2
-          {% if s.pct_change_1y > 0 %}text-red-500{% elif s.pct_change_1y < 0 %}text-green-600{% else %}text-slate-400{% endif %}">
-          {% if s.pct_change_1y > 0 %}▲{% elif s.pct_change_1y < 0 %}▼{% else %}—{% endif %}
-          {{ s.pct_change_1y | abs | round(1) }}% vs last year
-        </div>
-      {% else %}
-        <div class="text-xs text-slate-400 mb-2">No comparison data</div>
+      <!-- Name -->
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2 leading-tight">{{ s.name }}</div>
+
+      <!-- Price -->
+      <div class="text-xl font-extrabold text-white leading-none mb-0.5">
+        {% if s.latest_price is not none %}
+          ${{ "%.2f"|format(s.latest_price) }}
+        {% else %}
+          <span class="text-sm font-normal text-zinc-600">No data</span>
+        {% endif %}
+      </div>
+      {% if s.latest_price is not none %}
+        <div class="text-xs text-zinc-600">{{ s.unit }}</div>
       {% endif %}
 
       <!-- Sparkline mini chart -->
       {% if s.sparkline %}
-        <div class="h-12 mt-2"
+        <div class="h-10 mt-3 -mx-1"
              data-sparkline="{{ sparklines[s.slug] }}"
              id="spark-{{ s.slug }}">
         </div>
@@ -64,34 +79,49 @@
 </section>
 
 <!-- Overview index chart -->
-<section class="mb-12">
-  <h2 class="text-xl font-bold text-slate-800 mb-1">Price Index Over Time</h2>
-  <p class="text-sm text-slate-500 mb-5">
-    All goods normalised to <strong class="text-slate-700">100</strong> at their earliest recorded price —
-    so you can compare the trajectory of eggs, gasoline, and Netflix on the same chart.
-  </p>
-  <div id="overview-chart" class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 min-h-[420px]"></div>
+<section class="mb-10">
+  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl overflow-hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 pt-5 pb-4 border-b border-white/[0.05]">
+      <div>
+        <h2 class="text-sm font-semibold text-white">Price Index Over Time</h2>
+        <p class="text-xs text-zinc-500 mt-0.5">
+          Normalised to <span class="text-zinc-300 font-medium">100</span> at earliest recorded price — compare trajectories across all goods.
+        </p>
+      </div>
+    </div>
+    <div id="overview-chart" class="min-h-[420px] p-2"></div>
+  </div>
 </section>
 
 <!-- Inject chart data and render with Plotly -->
 <script id="overview-data" type="application/json">{{ overview_chart_json | safe }}</script>
 <script>
+  const DARK = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor:  'rgba(0,0,0,0)',
+    font:   { color: '#71717a', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 11 },
+    xaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
+    yaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
+    legend: { font: { color: '#a1a1aa' }, bgcolor: 'rgba(0,0,0,0)' },
+    margin: { t: 20, r: 20, b: 40, l: 50 },
+  };
+
   const overviewData = JSON.parse(document.getElementById("overview-data").textContent);
   document.addEventListener("DOMContentLoaded", function () {
-    Plotly.newPlot(
-      "overview-chart",
-      overviewData.data,
-      overviewData.layout,
-      { responsive: true, displayModeBar: false }
-    );
+    const layout = Object.assign({}, overviewData.layout, DARK);
+    Plotly.newPlot("overview-chart", overviewData.data, layout, { responsive: true, displayModeBar: false });
 
+    // Sparklines
     document.querySelectorAll("[data-sparkline]").forEach(function (el) {
-      const sparkData = JSON.parse(el.getAttribute("data-sparkline"));
-      Plotly.newPlot(el.id, sparkData.data, sparkData.layout, {
-        responsive: true,
-        displayModeBar: false,
-        staticPlot: true,
+      const d = JSON.parse(el.getAttribute("data-sparkline"));
+      const sl = Object.assign({}, d.layout, {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor:  'rgba(0,0,0,0)',
+        margin: { t: 0, r: 0, b: 0, l: 0 },
+        xaxis: { visible: false },
+        yaxis: { visible: false },
       });
+      Plotly.newPlot(el.id, d.data, sl, { responsive: true, displayModeBar: false, staticPlot: true });
     });
   });
 </script>
