@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Environment variables — NEVER commit this file (contains API keys)
+.env
+.env.*
+
+# SQLite database file — generated at runtime, not part of source
+*.db
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db

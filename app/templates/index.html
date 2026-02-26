@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Real Life Index — US Everyday Price Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Hero banner -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>The Everyday American Basket</h1>
+    <p>How much does everyday life actually cost? We track 10 common goods using official
+       US government data — and show you how prices have changed over time.</p>
+  </div>
+  <div class="hero-meta">
+    Last updated: <strong>{{ last_updated }}</strong>
+  </div>
+</section>
+
+<!-- Price cards grid -->
+<section class="section">
+  <h2 class="section-title">Current Prices</h2>
+  <div class="cards-grid">
+    {% for s in summaries %}
+    <a href="/good/{{ s.slug }}" class="card">
+
+      <div class="card-header">
+        <span class="card-emoji">{{ s.emoji }}</span>
+        <span class="card-name">{{ s.name }}</span>
+      </div>
+
+      <div class="card-price">
+        {% if s.latest_price is not none %}
+          ${{ "%.2f"|format(s.latest_price) }}
+          <span class="card-unit">{{ s.unit }}</span>
+        {% else %}
+          <span class="card-no-data">No data yet</span>
+        {% endif %}
+      </div>
+
+      {% if s.pct_change_1y is not none %}
+        <div class="card-change {% if s.pct_change_1y > 0 %}change-up{% elif s.pct_change_1y < 0 %}change-down{% else %}change-flat{% endif %}">
+          {% if s.pct_change_1y > 0 %}▲{% elif s.pct_change_1y < 0 %}▼{% else %}—{% endif %}
+          {{ s.pct_change_1y | abs | round(1) }}% vs last year
+        </div>
+      {% else %}
+        <div class="card-change change-flat">No comparison data</div>
+      {% endif %}
+
+      <!-- Sparkline mini chart -->
+      {% if s.sparkline %}
+        <div class="sparkline-container"
+             data-sparkline="{{ sparklines[s.slug] }}"
+             id="spark-{{ s.slug }}">
+        </div>
+      {% endif %}
+
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Overview index chart -->
+<section class="section">
+  <h2 class="section-title">Price Index Over Time</h2>
+  <p class="section-subtitle">
+    All goods normalised to <strong>100</strong> at their earliest recorded price —
+    so you can compare the trajectory of eggs, gasoline, and Netflix on the same chart.
+  </p>
+  <div id="overview-chart" class="chart-container"></div>
+</section>
+
+<!-- Inject chart data and render with Plotly -->
+<script>
+  // Overview chart
+  const overviewData = {{ overview_chart_json | safe }};
+  document.addEventListener("DOMContentLoaded", function () {
+    Plotly.newPlot(
+      "overview-chart",
+      overviewData.data,
+      overviewData.layout,
+      { responsive: true, displayModeBar: false }
+    );
+
+    // Render each sparkline
+    document.querySelectorAll("[data-sparkline]").forEach(function (el) {
+      const sparkData = JSON.parse(el.getAttribute("data-sparkline"));
+      Plotly.newPlot(el.id, sparkData.data, sparkData.layout, {
+        responsive: true,
+        displayModeBar: false,
+        staticPlot: true,
+      });
+    });
+  });
+</script>
+
+{% endblock %}

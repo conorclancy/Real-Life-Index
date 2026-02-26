@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Real Life Index{% endblock %}</title>
+
+  <!-- Plotly.js — loaded from CDN, no npm needed -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+
+  <!-- Our stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- Navigation bar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">
+      🛒 Real Life Index
+    </a>
+    <span class="navbar-tagline">US Everyday Price Tracker</span>
+  </nav>
+
+  <!-- Main content area -->
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      Data sources:
+      <a href="https://www.bls.gov/developers/" target="_blank" rel="noopener">BLS Average Retail Prices API</a> ·
+      <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener">EIA Open Data</a> ·
+      McDonald's &amp; Netflix prices manually maintained.
+    </p>
+    <p>Updated monthly (grocery) and weekly (gasoline). For informational purposes only.</p>
+  </footer>
+
+</body>
+</html>

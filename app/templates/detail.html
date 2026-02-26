@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ detail.name }} — Real Life Index{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb">
+  <a href="/">Home</a> › {{ detail.name }}
+</nav>
+
+<!-- Page header -->
+<section class="hero hero-small">
+  <div class="hero-text">
+    <h1>{{ detail.emoji }} {{ detail.name }}</h1>
+    <p>{{ detail.unit }} · Source: <strong>{{ detail.source | upper }}</strong></p>
+  </div>
+  {% if detail.latest_price is not none %}
+  <div class="hero-price">
+    ${{ "%.2f"|format(detail.latest_price) }}
+    <span class="hero-period">{{ detail.latest_period }}</span>
+  </div>
+  {% endif %}
+</section>
+
+<!-- Stats bar -->
+{% if detail.latest_price is not none %}
+<section class="stats-bar">
+
+  <div class="stat">
+    <div class="stat-label">Current Price</div>
+    <div class="stat-value">${{ "%.2f"|format(detail.latest_price) }}</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">vs. 1 Month Ago</div>
+    {% if detail.pct_change_1m is not none %}
+      <div class="stat-value {% if detail.pct_change_1m > 0 %}text-red{% elif detail.pct_change_1m < 0 %}text-green{% endif %}">
+        {% if detail.pct_change_1m > 0 %}+{% endif %}{{ detail.pct_change_1m }}%
+      </div>
+    {% else %}
+      <div class="stat-value text-muted">N/A</div>
+    {% endif %}
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">vs. 6 Months Ago</div>
+    {% if detail.pct_change_6m is not none %}
+      <div class="stat-value {% if detail.pct_change_6m > 0 %}text-red{% elif detail.pct_change_6m < 0 %}text-green{% endif %}">
+        {% if detail.pct_change_6m > 0 %}+{% endif %}{{ detail.pct_change_6m }}%
+      </div>
+    {% else %}
+      <div class="stat-value text-muted">N/A</div>
+    {% endif %}
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">vs. 1 Year Ago</div>
+    {% if detail.pct_change_1y is not none %}
+      <div class="stat-value {% if detail.pct_change_1y > 0 %}text-red{% elif detail.pct_change_1y < 0 %}text-green{% endif %}">
+        {% if detail.pct_change_1y > 0 %}+{% endif %}{{ detail.pct_change_1y }}%
+      </div>
+    {% else %}
+      <div class="stat-value text-muted">N/A</div>
+    {% endif %}
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">All-Time High</div>
+    <div class="stat-value text-red">${{ "%.2f"|format(detail.all_time_high) }}</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">All-Time Low</div>
+    <div class="stat-value text-green">${{ "%.2f"|format(detail.all_time_low) }}</div>
+  </div>
+
+</section>
+{% endif %}
+
+<!-- Price history chart -->
+<section class="section">
+  <h2 class="section-title">Price History</h2>
+  {% if detail.history %}
+    <div id="detail-chart" class="chart-container chart-container-tall"></div>
+  {% else %}
+    <div class="empty-state">
+      <p>No price history available yet. Trigger a data refresh to populate this chart.</p>
+      <p><a href="/health">Check app status →</a></p>
+    </div>
+  {% endif %}
+</section>
+
+<!-- Recent data table -->
+{% if detail.history %}
+<section class="section">
+  <h2 class="section-title">Recent Snapshots</h2>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th>Price (USD)</th>
+          <th>Collected At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for snap in detail.history[-20:] | reverse %}
+        <tr>
+          <td>{{ snap.period_label }}</td>
+          <td>${{ "%.2f"|format(snap.price_usd) }}</td>
+          <td>{{ snap.collected_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<!-- Data source note -->
+<section class="section">
+  <div class="source-note">
+    <strong>Data source:</strong>
+    {% if detail.source == "bls" %}
+      <a href="https://www.bls.gov/developers/" target="_blank" rel="noopener">
+        U.S. Bureau of Labor Statistics — Average Retail Prices API
+      </a>
+      (monthly, US city average)
+    {% elif detail.source == "eia" %}
+      <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener">
+        U.S. Energy Information Administration — Open Data API
+      </a>
+      (weekly, US national average)
+    {% else %}
+      Manually maintained — verified periodically against public price listings.
+    {% endif %}
+  </div>
+</section>
+
+<!-- Inject chart and render -->
+<script>
+  const detailData = {{ detail_chart_json | safe }};
+  document.addEventListener("DOMContentLoaded", function () {
+    {% if detail.history %}
+    Plotly.newPlot(
+      "detail-chart",
+      detailData.data,
+      detailData.layout,
+      { responsive: true, displayModeBar: true }
+    );
+    {% endif %}
+  });
+</script>
+
+{% endblock %}

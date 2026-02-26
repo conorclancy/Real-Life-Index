@@ -1,0 +1,365 @@
+/* ============================================================
+   Real Life Index — Stylesheet
+   Clean, readable, accessible. Aimed at everyday people.
+   ============================================================ */
+
+/* ---- Reset & base ---------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --blue:      #3b82f6;
+  --blue-dark: #1d4ed8;
+  --green:     #16a34a;
+  --red:       #dc2626;
+  --gray-50:   #f9fafb;
+  --gray-100:  #f3f4f6;
+  --gray-200:  #e5e7eb;
+  --gray-400:  #9ca3af;
+  --gray-600:  #4b5563;
+  --gray-800:  #1f2937;
+  --white:     #ffffff;
+  --radius:    8px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--gray-800);
+  background: var(--gray-50);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* ---- Layout ---------------------------------------------- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+/* ---- Navbar ---------------------------------------------- */
+.navbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 1.5rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  text-decoration: none;
+}
+.navbar-brand:hover { color: var(--blue); text-decoration: none; }
+
+.navbar-tagline {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+}
+
+/* ---- Hero banner ----------------------------------------- */
+.hero {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: var(--white);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  margin: 2rem 0 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.hero p {
+  font-size: 1rem;
+  opacity: 0.9;
+  max-width: 580px;
+}
+
+.hero-meta {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  padding-top: 0.25rem;
+}
+
+.hero-small {
+  padding: 1.5rem 2rem;
+  align-items: center;
+}
+
+.hero-price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.hero-period {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  font-weight: 400;
+  text-align: right;
+}
+
+/* ---- Section --------------------------------------------- */
+.section {
+  margin: 2rem 0;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  margin-bottom: 1rem;
+}
+
+/* ---- Price cards grid ------------------------------------ */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  display: block;
+  color: var(--gray-800);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  text-decoration: none;
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: var(--gray-800);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.card-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-price {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gray-800);
+  margin-bottom: 0.35rem;
+  line-height: 1.1;
+}
+
+.card-unit {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--gray-400);
+}
+
+.card-no-data {
+  font-size: 0.9rem;
+  color: var(--gray-400);
+  font-weight: 400;
+}
+
+.card-change {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.change-up    { color: var(--red); }
+.change-down  { color: var(--green); }
+.change-flat  { color: var(--gray-400); }
+
+.sparkline-container {
+  height: 50px;
+  margin-top: 0.5rem;
+}
+
+/* ---- Chart container ------------------------------------- */
+.chart-container {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  min-height: 400px;
+}
+
+.chart-container-tall {
+  min-height: 480px;
+}
+
+/* ---- Stats bar (detail page) ----------------------------- */
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stat {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  flex: 1;
+  min-width: 120px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-400);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--gray-800);
+}
+
+/* ---- Utility colours ------------------------------------- */
+.text-red   { color: var(--red) !important; }
+.text-green { color: var(--green) !important; }
+.text-muted { color: var(--gray-400) !important; }
+
+/* ---- Data table ------------------------------------------ */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  background: var(--gray-50);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-600);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.data-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-800);
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--gray-50); }
+
+/* ---- Source note ----------------------------------------- */
+.source-note {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+/* ---- Breadcrumb ------------------------------------------ */
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+  margin: 1.5rem 0 0;
+}
+
+/* ---- Empty state ----------------------------------------- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-400);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+}
+
+/* ---- Footer ---------------------------------------------- */
+.footer {
+  border-top: 1px solid var(--gray-200);
+  background: var(--white);
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  line-height: 1.8;
+  margin-top: 3rem;
+}
+
+/* ---- Responsive ------------------------------------------ */
+@media (max-width: 600px) {
+  .hero { flex-direction: column; }
+  .hero h1 { font-size: 1.4rem; }
+  .hero-price { text-align: left; font-size: 2rem; }
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+  .stats-bar { gap: 0.5rem; }
+  .stat { min-width: 100px; padding: 0.75rem; }
+  .navbar-tagline { display: none; }
+}
