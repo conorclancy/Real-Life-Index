@@ -5,50 +5,54 @@
 {% block content %}
 
 <!-- Hero banner -->
-<section class="hero">
-  <div class="hero-text">
-    <h1>The Everyday American Basket</h1>
-    <p>How much does everyday life actually cost? We track 10 common goods using official
-       US government data — and show you how prices have changed over time.</p>
+<section class="bg-gradient-to-br from-blue-900 to-blue-500 text-white rounded-2xl px-8 py-10 mt-8 mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+  <div>
+    <h1 class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">The Everyday American Basket</h1>
+    <p class="text-blue-100 max-w-xl text-base md:text-lg leading-relaxed">
+      How much does everyday life actually cost? We track 10 common goods using official
+      US government data — and show you how prices have changed over time.
+    </p>
   </div>
-  <div class="hero-meta">
-    Last updated: <strong>{{ last_updated }}</strong>
+  <div class="text-sm text-blue-200 md:whitespace-nowrap pt-1">
+    Last updated: <strong class="text-white">{{ last_updated }}</strong>
   </div>
 </section>
 
 <!-- Price cards grid -->
-<section class="section">
-  <h2 class="section-title">Current Prices</h2>
-  <div class="cards-grid">
+<section class="mb-12">
+  <h2 class="text-xl font-bold text-slate-800 mb-5">Current Prices</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
     {% for s in summaries %}
-    <a href="/good/{{ s.slug }}" class="card">
+    <a href="/good/{{ s.slug }}"
+       class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 block no-underline group">
 
-      <div class="card-header">
-        <span class="card-emoji">{{ s.emoji }}</span>
-        <span class="card-name">{{ s.name }}</span>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-2xl leading-none">{{ s.emoji }}</span>
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">{{ s.name }}</span>
       </div>
 
-      <div class="card-price">
+      <div class="text-2xl font-extrabold text-slate-800 leading-tight mb-1">
         {% if s.latest_price is not none %}
           ${{ "%.2f"|format(s.latest_price) }}
-          <span class="card-unit">{{ s.unit }}</span>
+          <span class="text-xs font-normal text-slate-400 ml-0.5">{{ s.unit }}</span>
         {% else %}
-          <span class="card-no-data">No data yet</span>
+          <span class="text-base font-normal text-slate-400">No data yet</span>
         {% endif %}
       </div>
 
       {% if s.pct_change_1y is not none %}
-        <div class="card-change {% if s.pct_change_1y > 0 %}change-up{% elif s.pct_change_1y < 0 %}change-down{% else %}change-flat{% endif %}">
+        <div class="text-xs font-semibold mb-2
+          {% if s.pct_change_1y > 0 %}text-red-500{% elif s.pct_change_1y < 0 %}text-green-600{% else %}text-slate-400{% endif %}">
           {% if s.pct_change_1y > 0 %}▲{% elif s.pct_change_1y < 0 %}▼{% else %}—{% endif %}
           {{ s.pct_change_1y | abs | round(1) }}% vs last year
         </div>
       {% else %}
-        <div class="card-change change-flat">No comparison data</div>
+        <div class="text-xs text-slate-400 mb-2">No comparison data</div>
       {% endif %}
 
       <!-- Sparkline mini chart -->
       {% if s.sparkline %}
-        <div class="sparkline-container"
+        <div class="h-12 mt-2"
              data-sparkline="{{ sparklines[s.slug] }}"
              id="spark-{{ s.slug }}">
         </div>
@@ -60,19 +64,19 @@
 </section>
 
 <!-- Overview index chart -->
-<section class="section">
-  <h2 class="section-title">Price Index Over Time</h2>
-  <p class="section-subtitle">
-    All goods normalised to <strong>100</strong> at their earliest recorded price —
+<section class="mb-12">
+  <h2 class="text-xl font-bold text-slate-800 mb-1">Price Index Over Time</h2>
+  <p class="text-sm text-slate-500 mb-5">
+    All goods normalised to <strong class="text-slate-700">100</strong> at their earliest recorded price —
     so you can compare the trajectory of eggs, gasoline, and Netflix on the same chart.
   </p>
-  <div id="overview-chart" class="chart-container"></div>
+  <div id="overview-chart" class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 min-h-[420px]"></div>
 </section>
 
 <!-- Inject chart data and render with Plotly -->
+<script id="overview-data" type="application/json">{{ overview_chart_json | safe }}</script>
 <script>
-  // Overview chart
-  const overviewData = {{ overview_chart_json | safe }};
+  const overviewData = JSON.parse(document.getElementById("overview-data").textContent);
   document.addEventListener("DOMContentLoaded", function () {
     Plotly.newPlot(
       "overview-chart",
@@ -81,7 +85,6 @@
       { responsive: true, displayModeBar: false }
     );
 
-    // Render each sparkline
     document.querySelectorAll("[data-sparkline]").forEach(function (el) {
       const sparkData = JSON.parse(el.getAttribute("data-sparkline"));
       Plotly.newPlot(el.id, sparkData.data, sparkData.layout, {
