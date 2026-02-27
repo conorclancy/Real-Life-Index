@@ -8,6 +8,7 @@ Usage in route handlers:
 
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import settings
@@ -39,6 +40,24 @@ async def init_db() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+async def run_migrations() -> None:
+    """
+    Apply schema migrations to an existing database.
+    Each ALTER TABLE is wrapped in try/except so it silently skips
+    columns that already exist — safe to call on every startup.
+    """
+    migrations = [
+        "ALTER TABLE goods ADD COLUMN country VARCHAR(10) NOT NULL DEFAULT 'us'",
+        "ALTER TABLE goods ADD COLUMN currency VARCHAR(5) NOT NULL DEFAULT 'USD'",
+    ]
+    async with engine.begin() as conn:
+        for sql in migrations:
+            try:
+                await conn.execute(text(sql))
+            except Exception:
+                pass  # Column already exists
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

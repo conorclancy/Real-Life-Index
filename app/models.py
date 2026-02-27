@@ -2,7 +2,7 @@
 SQLAlchemy ORM models and the goods seed catalogue.
 
 Two tables:
-  - Good: master list of the 10 tracked everyday items
+  - Good: master list of tracked everyday items
   - PriceSnapshot: one row per price observation (builds the time series)
 """
 
@@ -38,14 +38,16 @@ class Good(Base):
     name      = Column(String(100), nullable=False)                # e.g. "Dozen Eggs"
     unit      = Column(String(50), nullable=False)                 # e.g. "per dozen"
     category  = Column(String(50), nullable=False)                 # "grocery" | "fuel" | "subscription"
-    source    = Column(String(50), nullable=False)                 # "bls" | "eia" | "static"
-    source_id = Column(String(100), nullable=True)                 # BLS/EIA series ID (null for static)
+    source    = Column(String(50), nullable=False)                 # "bls" | "eia" | "static" | "lidl_ie" | "aa_ie"
+    source_id = Column(String(100), nullable=True)                 # BLS/EIA series ID or scraper search term
     emoji     = Column(String(10), nullable=False, default="🛒")   # Shown on the dashboard cards
+    country   = Column(String(10), nullable=False, default="us")   # "us" | "ie"
+    currency  = Column(String(5), nullable=False, default="USD")   # "USD" | "EUR"
 
     snapshots = relationship("PriceSnapshot", back_populates="good", lazy="selectin")
 
     def __repr__(self) -> str:
-        return f"<Good slug={self.slug!r} source={self.source!r}>"
+        return f"<Good slug={self.slug!r} source={self.source!r} country={self.country!r}>"
 
 
 class PriceSnapshot(Base):
@@ -57,11 +59,10 @@ class PriceSnapshot(Base):
 
     id           = Column(Integer, primary_key=True)
     good_id      = Column(Integer, ForeignKey("goods.id"), nullable=False)
-    price_usd    = Column(Float, nullable=False)                    # Price in US dollars
+    price_usd    = Column(Float, nullable=False)                    # Price in local currency (USD or EUR)
     collected_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    # BLS format: "2024-M12" | EIA format: "2024-W01" | static: "static"
     period_label = Column(String(20), nullable=True)
-    source_raw   = Column(String(500), nullable=True)               # Raw value string from the API
+    source_raw   = Column(String(500), nullable=True)               # Raw value string from the source
 
     good = relationship("Good", back_populates="snapshots")
 
@@ -78,10 +79,13 @@ class PriceSnapshot(Base):
 
 # ---------------------------------------------------------------------------
 # Goods catalogue
-# The 10 everyday items tracked by this dashboard.
-# source_id is the BLS Average Retail Prices series ID or EIA series ID.
 # ---------------------------------------------------------------------------
 GOODS_SEED: list[dict] = [
+    # =========================================================================
+    # UNITED STATES BASKET
+    # =========================================================================
+
+    # GROCERIES — 7 items via BLS Average Retail Prices API
     {
         "slug": "eggs",
         "name": "Dozen Eggs",
@@ -90,6 +94,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000708111",  # Eggs, grade A, large, per doz. — US city avg
         "emoji": "🥚",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "milk",
@@ -99,6 +105,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000709112",  # Milk, whole, fortified, per gal. — US city avg
         "emoji": "🥛",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "bread",
@@ -108,6 +116,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000702111",  # Bread, white, pan, per lb. — US city avg
         "emoji": "🍞",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "ground_beef",
@@ -117,6 +127,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000703112",  # Ground beef, 100% beef, per lb. — US city avg
         "emoji": "🥩",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "chicken",
@@ -126,6 +138,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000706111",  # Chicken, fresh, whole, per lb. — US city avg
         "emoji": "🍗",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "coffee",
@@ -135,6 +149,8 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000717311",  # Coffee, 100%, ground roast, all sizes, per lb.
         "emoji": "☕",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "beer",
@@ -144,7 +160,10 @@ GOODS_SEED: list[dict] = [
         "source": "bls",
         "source_id": "APU0000720311",  # Beer, away from home, per 16 oz. — US city avg
         "emoji": "🍺",
+        "country": "us",
+        "currency": "USD",
     },
+    # FUEL — via EIA Open Data
     {
         "slug": "gasoline",
         "name": "Regular Gasoline",
@@ -153,7 +172,10 @@ GOODS_SEED: list[dict] = [
         "source": "eia",
         "source_id": "EMM_EPM0_PTE_NUS_DPG",  # US regular conventional gas, $/gallon
         "emoji": "⛽",
+        "country": "us",
+        "currency": "USD",
     },
+    # DINING & SUBSCRIPTIONS — manually maintained
     {
         "slug": "mcdonalds",
         "name": "McDonald's Big Mac Meal",
@@ -162,6 +184,8 @@ GOODS_SEED: list[dict] = [
         "source": "static",
         "source_id": None,
         "emoji": "🍔",
+        "country": "us",
+        "currency": "USD",
     },
     {
         "slug": "netflix",
@@ -171,5 +195,128 @@ GOODS_SEED: list[dict] = [
         "source": "static",
         "source_id": None,
         "emoji": "📺",
+        "country": "us",
+        "currency": "USD",
+    },
+
+    # =========================================================================
+    # IRELAND BASKET
+    # Grocery prices scraped from Lidl.ie (own-brand staples).
+    # Fuel prices from AA Ireland fuel tracker.
+    # Static prices verified manually.
+    # =========================================================================
+
+    # GROCERIES — scraped from Lidl Ireland
+    {
+        "slug": "ie_eggs",
+        "name": "Free Range Eggs (12)",
+        "unit": "per dozen",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "eggs",  # Search term used on lidl.ie
+        "emoji": "🥚",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_milk",
+        "name": "Fresh Milk (2L)",
+        "unit": "per 2 litres",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "milk 2l",
+        "emoji": "🥛",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_bread",
+        "name": "White Sliced Pan",
+        "unit": "per loaf",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "white sliced pan",
+        "emoji": "🍞",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_mince",
+        "name": "Lean Beef Mince",
+        "unit": "per pack",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "lean beef mince",
+        "emoji": "🥩",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_chicken",
+        "name": "Chicken Breast Fillets",
+        "unit": "per pack",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "chicken fillets",
+        "emoji": "🍗",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_coffee",
+        "name": "Ground Coffee (Bellarom)",
+        "unit": "per pack",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "bellarom",
+        "emoji": "☕",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_beer",
+        "name": "Beer Multipack",
+        "unit": "per multipack",
+        "category": "grocery",
+        "source": "lidl_ie",
+        "source_id": "beer multipack",
+        "emoji": "🍺",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    # FUEL — scraped from AA Ireland fuel tracker
+    {
+        "slug": "ie_petrol",
+        "name": "Unleaded Petrol",
+        "unit": "per litre",
+        "category": "fuel",
+        "source": "aa_ie",
+        "source_id": "petrol",
+        "emoji": "⛽",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    # DINING & SUBSCRIPTIONS — manually maintained
+    {
+        "slug": "ie_supermacs",
+        "name": "Supermac's Regular Meal",
+        "unit": "per meal",
+        "category": "dining",
+        "source": "static",
+        "source_id": None,
+        "emoji": "🍔",
+        "country": "ie",
+        "currency": "EUR",
+    },
+    {
+        "slug": "ie_netflix",
+        "name": "Netflix Standard Plan",
+        "unit": "per month",
+        "category": "subscription",
+        "source": "static",
+        "source_id": None,
+        "emoji": "📺",
+        "country": "ie",
+        "currency": "EUR",
     },
 ]

@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
       4. Start the APScheduler background scheduler
     """
     # --- Startup ---
-    from app.database import AsyncSessionLocal, init_db  # noqa: PLC0415
+    from app.database import AsyncSessionLocal, init_db, run_migrations  # noqa: PLC0415
     from app.services.refresh_service import run_all_collectors, seed_goods  # noqa: PLC0415
 
     logger.info("Starting up Real Life Index...")
@@ -50,7 +50,11 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database tables ready.")
 
-    # 2. Seed the goods catalogue
+    # 2. Apply any schema migrations (adds new columns to existing tables)
+    await run_migrations()
+    logger.info("Migrations applied.")
+
+    # 3. Seed the goods catalogue (adds any new goods not yet in the DB)
     async with AsyncSessionLocal() as db:
         await seed_goods(db)
 

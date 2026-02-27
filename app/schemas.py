@@ -27,6 +27,8 @@ class GoodSummarySchema(BaseModel):
     unit: str
     category: str
     emoji: str
+    country: str                      # "us" | "ie"
+    currency: str                     # "USD" | "EUR"
     latest_price: float | None
     latest_period: str | None
     price_1y_ago: float | None        # Price ~12 months ago (for % change)
@@ -44,6 +46,8 @@ class GoodDetailSchema(BaseModel):
     category: str
     source: str
     emoji: str
+    country: str                      # "us" | "ie"
+    currency: str                     # "USD" | "EUR"
     latest_price: float | None
     latest_period: str | None
     price_1m_ago: float | None

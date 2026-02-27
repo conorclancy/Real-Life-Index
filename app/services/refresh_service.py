@@ -14,8 +14,10 @@ from sqlalchemy import select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.collectors.aa_ireland_client import AAIrelandClient
 from app.collectors.bls_client import BLSClient
 from app.collectors.eia_client import EIAClient
+from app.collectors.lidl_ie_client import LidlIEClient
 from app.collectors.static_prices import get_static_price
 from app.config import settings
 from app.database import AsyncSessionLocal
@@ -26,6 +28,8 @@ logger = logging.getLogger(__name__)
 # Module-level client instances (created once, reused across scheduler runs)
 _bls_client = BLSClient(api_key=settings.BLS_API_KEY)
 _eia_client = EIAClient(api_key=settings.EIA_API_KEY)
+_lidl_ie_client = LidlIEClient()
+_aa_ie_client = AAIrelandClient()
 
 
 async def run_all_collectors() -> dict[str, str]:
@@ -75,7 +79,7 @@ async def run_all_collectors() -> dict[str, str]:
             logger.warning("Gasoline good not found in database")
             status["gasoline"] = "not_found"
 
-        # --- 3. Static prices (McDonald's, Netflix) ---
+        # --- 3. Static prices (McDonald's, Netflix, Supermac's, Netflix IE) ---
         static_goods = await _get_goods_by_source(db, "static")
         for good in static_goods:
             price = get_static_price(good.slug)
@@ -84,13 +88,37 @@ async def run_all_collectors() -> dict[str, str]:
                 status[good.slug] = "no_data"
                 continue
 
-            # Static goods use a period label based on the current year-month
-            # so they get a new snapshot each month (reflecting that we verified
-            # the price is still current)
             period_label = datetime.utcnow().strftime("%Y-%m")
             await _upsert_snapshot(db, good.id, price, period_label)
             status[good.slug] = "ok"
-            logger.info("  Static: %s = $%.2f", good.slug, price)
+            logger.info("  Static: %s = %.2f", good.slug, price)
+
+        # --- 4. Lidl Ireland grocery prices ---
+        lidl_goods = await _get_goods_by_source(db, "lidl_ie")
+        for good in lidl_goods:
+            if not good.source_id:
+                status[good.slug] = "no_source_id"
+                continue
+            result = await _lidl_ie_client.get_price(good.slug, good.source_id)
+            if result is None:
+                logger.warning("Lidl IE: no data for %s", good.slug)
+                status[good.slug] = "no_data"
+            else:
+                price, period_label = result
+                await _upsert_snapshot(db, good.id, price, period_label)
+                status[good.slug] = "ok"
+
+        # --- 5. AA Ireland petrol price ---
+        ie_petrol = await _get_good_by_slug(db, "ie_petrol")
+        if ie_petrol:
+            result = await _aa_ie_client.get_petrol_price()
+            if result is None:
+                logger.warning("AA Ireland: no petrol price data")
+                status["ie_petrol"] = "no_data"
+            else:
+                price, period_label = result
+                await _upsert_snapshot(db, ie_petrol.id, price, period_label)
+                status["ie_petrol"] = "ok"
 
         await db.commit()
 
@@ -100,20 +128,33 @@ async def run_all_collectors() -> dict[str, str]:
 
 async def seed_goods(db: AsyncSession) -> None:
     """
-    Populate the goods table with the 10 tracked items if it is empty.
-    Safe to call on every startup — does nothing if goods already exist.
+    Ensure every good in GOODS_SEED exists in the database, and keep the
+    source_id in sync with the catalogue (search terms may be tuned over time).
+    New goods are inserted; existing ones have their source_id updated if changed.
+    Safe to call on every startup.
     """
     from app.models import GOODS_SEED  # noqa: PLC0415
 
-    existing = await db.execute(select(Good))
-    if existing.scalars().first() is not None:
-        return  # Already seeded
-
-    logger.info("Seeding goods catalogue...")
+    new_count = 0
+    updated_count = 0
     for item in GOODS_SEED:
-        db.add(Good(**item))
-    await db.commit()
-    logger.info("Seeded %d goods.", len(GOODS_SEED))
+        result = await db.execute(select(Good).where(Good.slug == item["slug"]))
+        existing = result.scalars().first()
+        if existing is None:
+            db.add(Good(**item))
+            new_count += 1
+        elif existing.source_id != item.get("source_id"):
+            existing.source_id = item.get("source_id")
+            updated_count += 1
+
+    if new_count or updated_count:
+        await db.commit()
+        logger.info(
+            "Goods catalogue updated: %d new, %d source_id updated.",
+            new_count, updated_count,
+        )
+    else:
+        logger.info("Goods catalogue is up to date — no changes.")
 
 
 # ---------------------------------------------------------------------------

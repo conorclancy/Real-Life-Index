@@ -5,7 +5,8 @@
       "WebFetch(domain:api.bls.gov)",
       "WebFetch(domain:www.eia.gov)",
       "WebFetch(domain:apps.bls.gov)",
-      "WebFetch(domain:api.eia.gov)"
+      "WebFetch(domain:api.eia.gov)",
+      "WebFetch(domain:www.lidl.ie)"
     ]
   }
 }

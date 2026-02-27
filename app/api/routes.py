@@ -35,25 +35,24 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def dashboard_home(
     request: Request,
+    country: str = Query(default="us", pattern="^(us|ie)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Main dashboard page.
     Renders a grid of price cards and a normalised index overview chart.
+    Use ?country=ie to switch to the Ireland basket.
     """
-    # Import here to access the templates object created in app/__init__.py
     from app import templates  # noqa: PLC0415
 
-    summaries = await price_service.build_good_summaries(db)
-    overview_chart_json = await price_service.build_overview_chart_json(db)
+    summaries = await price_service.build_good_summaries(db, country=country)
+    overview_chart_json = await price_service.build_overview_chart_json(db, country=country)
 
-    # Build sparkline JSON for each card
     sparklines = {
         s.slug: price_service.build_sparkline_json(s.sparkline)
         for s in summaries
     }
 
-    # Find when data was last updated (most recent snapshot across all goods)
     last_updated = None
     for s in summaries:
         if s.latest_period:
@@ -68,6 +67,7 @@ async def dashboard_home(
             "overview_chart_json": overview_chart_json,
             "sparklines": sparklines,
             "last_updated": last_updated or "No data yet",
+            "country": country,
         },
     )
 

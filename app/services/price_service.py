@@ -31,6 +31,16 @@ async def get_all_goods(db: AsyncSession) -> list[Good]:
     return list(result.scalars().all())
 
 
+async def get_goods_by_country(db: AsyncSession, country: str) -> list[Good]:
+    """Return goods for a specific country ('us' or 'ie'), ordered by category then name."""
+    result = await db.execute(
+        select(Good)
+        .where(Good.country == country)
+        .order_by(Good.category, Good.name)
+    )
+    return list(result.scalars().all())
+
+
 async def get_good_by_slug(db: AsyncSession, slug: str) -> Good | None:
     """Return a single Good by slug, or None if not found."""
     result = await db.execute(select(Good).where(Good.slug == slug))
@@ -72,12 +82,14 @@ async def get_all_snapshots_for_good(
 # Summary builders (dashboard home)
 # ---------------------------------------------------------------------------
 
-async def build_good_summaries(db: AsyncSession) -> list[GoodSummarySchema]:
+async def build_good_summaries(
+    db: AsyncSession, country: str = "us"
+) -> list[GoodSummarySchema]:
     """
-    Build summary data for every good — used to populate the dashboard cards.
-    Includes current price, % change vs 1 year ago, and sparkline data.
+    Build summary data for goods in the given country — used to populate the
+    dashboard cards. Includes current price, % change vs 1 year ago, and sparkline.
     """
-    goods = await get_all_goods(db)
+    goods = await get_goods_by_country(db, country)
     summaries: list[GoodSummarySchema] = []
 
     for good in goods:
@@ -91,6 +103,8 @@ async def build_good_summaries(db: AsyncSession) -> list[GoodSummarySchema]:
                 unit=good.unit,
                 category=good.category,
                 emoji=good.emoji,
+                country=good.country,
+                currency=good.currency,
                 latest_price=None,
                 latest_period=None,
                 price_1y_ago=None,
@@ -120,6 +134,8 @@ async def build_good_summaries(db: AsyncSession) -> list[GoodSummarySchema]:
             unit=good.unit,
             category=good.category,
             emoji=good.emoji,
+            country=good.country,
+            currency=good.currency,
             latest_price=round(latest_price, 2),
             latest_period=latest_period,
             price_1y_ago=round(price_1y_ago, 2) if price_1y_ago else None,
@@ -150,6 +166,7 @@ async def build_good_detail(
         return GoodDetailSchema(
             slug=good.slug, name=good.name, unit=good.unit,
             category=good.category, source=good.source, emoji=good.emoji,
+            country=good.country, currency=good.currency,
             latest_price=None, latest_period=None,
             price_1m_ago=None, price_6m_ago=None, price_1y_ago=None,
             pct_change_1m=None, pct_change_6m=None, pct_change_1y=None,
@@ -185,6 +202,8 @@ async def build_good_detail(
         category=good.category,
         source=good.source,
         emoji=good.emoji,
+        country=good.country,
+        currency=good.currency,
         latest_price=round(latest_price, 2),
         latest_period=snapshots[-1].period_label,
         price_1m_ago=round(price_1m, 2) if price_1m else None,
@@ -203,17 +222,17 @@ async def build_good_detail(
 # Chart builders (Plotly)
 # ---------------------------------------------------------------------------
 
-async def build_overview_chart_json(db: AsyncSession) -> str:
+async def build_overview_chart_json(db: AsyncSession, country: str = "us") -> str:
     """
     Build the main overview chart for the dashboard home page.
 
-    All 10 goods are normalised to index = 100 at their earliest recorded
-    price, so wildly different dollar amounts (e.g. eggs vs Netflix) can be
-    compared on the same Y-axis.
+    All goods for the given country are normalised to index = 100 at their
+    earliest recorded price, so wildly different amounts can be compared on
+    the same Y-axis.
 
     Returns a JSON string passed directly to Plotly.newPlot() in the template.
     """
-    goods = await get_all_goods(db)
+    goods = await get_goods_by_country(db, country)
     traces = []
 
     for good in goods:
@@ -268,6 +287,9 @@ def build_detail_chart_json(detail: GoodDetailSchema) -> str:
     x_dates = [s.period_label for s in detail.history]
     y_prices = [s.price_usd for s in detail.history]
 
+    currency_sym = "€" if getattr(detail, "currency", "USD") == "EUR" else "$"
+    currency_code = getattr(detail, "currency", "USD")
+
     trace = go.Scatter(
         x=x_dates,
         y=y_prices,
@@ -277,7 +299,7 @@ def build_detail_chart_json(detail: GoodDetailSchema) -> str:
         marker=dict(size=4),
         hovertemplate=(
             "Period: %{x}<br>"
-            f"Price: $%{{y:.2f}} {detail.unit}<br>"
+            f"Price: {currency_sym}%{{y:.2f}} {detail.unit}<br>"
             "<extra></extra>"
         ),
     )
@@ -285,9 +307,9 @@ def build_detail_chart_json(detail: GoodDetailSchema) -> str:
     layout = go.Layout(
         title=None,
         yaxis=dict(
-            title=f"Price (USD, {detail.unit})",
+            title=f"Price ({currency_code}, {detail.unit})",
             gridcolor="#e5e7eb",
-            tickprefix="$",
+            tickprefix=currency_sym,
         ),
         xaxis=dict(
             title=None,
