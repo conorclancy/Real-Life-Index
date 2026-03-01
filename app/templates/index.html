@@ -1,66 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %}Real Life Index — US Everyday Price Dashboard{% endblock %}
+{% block title %}Real Life Index — Everyday Price Dashboard{% endblock %}
 
 {% block content %}
 
 <!-- Page header -->
-<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mt-8 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mt-10 mb-8 fade-up">
   <div>
-    <p class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1">Dashboard</p>
-    <h1 class="text-2xl md:text-3xl font-extrabold text-white leading-tight">
+    <p class="text-[11px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-2" style="color: #818cf8;">
+      <span class="inline-block w-1 h-3.5 rounded-full" style="background: #818cf8;"></span>
+      Dashboard
+    </p>
+    <h1 class="text-3xl md:text-[2.4rem] font-extrabold gradient-text leading-tight tracking-tight">
       {% if country == "ie" %}The Everyday Irish Basket{% else %}The Everyday American Basket{% endif %}
     </h1>
-    <p class="text-sm text-zinc-500 mt-1 max-w-xl">
+    <p class="text-sm text-zinc-500 mt-2 max-w-lg leading-relaxed">
       {% if country == "ie" %}
-        Tracking 10 common goods using Lidl Ireland, AA Ireland &amp; more.
+        Tracking common goods using Lidl Ireland, AA Ireland &amp; more.
       {% else %}
-        Tracking 10 common goods with official US government data.
+        Tracking common goods with official US government data.
       {% endif %}
     </p>
   </div>
-  <div class="flex items-center gap-2 text-xs text-zinc-600 bg-[#13131a] border border-white/[0.07] rounded-lg px-3 py-2 self-start sm:self-auto whitespace-nowrap">
-    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-    Updated <span class="text-zinc-400 ml-1">{{ last_updated }}</span>
+
+  <!-- Updated badge -->
+  <div class="flex items-center gap-2 text-xs text-zinc-500 rounded-full px-4 py-2 self-start sm:self-auto whitespace-nowrap border border-white/[0.07]"
+       style="background: rgba(255,255,255,0.03);">
+    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+    Updated <span class="text-zinc-300 ml-1 font-semibold price-num">{{ last_updated }}</span>
   </div>
 </div>
 
-<!-- Country switcher tabs -->
-<div class="flex gap-2 mb-7">
+<!-- Country switcher — segment control -->
+<div class="flex mb-8 p-1 rounded-xl border border-white/[0.07] w-fit" style="background: rgba(255,255,255,0.03);">
   <a href="/?country=us"
-     class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all
-       {% if country == 'us' %}bg-blue-600 text-white{% else %}bg-[#13131a] text-zinc-400 border border-white/[0.07] hover:text-white hover:border-white/[0.15]{% endif %}">
-    🇺🇸 United States
+     class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200
+       {% if country == 'us' %}text-white{% else %}text-zinc-500 hover:text-zinc-300{% endif %}"
+     {% if country == 'us' %}style="background: rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.4);"{% endif %}>
+    🇺🇸 <span>United States</span>
   </a>
   <a href="/?country=ie"
-     class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all
-       {% if country == 'ie' %}bg-emerald-600 text-white{% else %}bg-[#13131a] text-zinc-400 border border-white/[0.07] hover:text-white hover:border-white/[0.15]{% endif %}">
-    🇮🇪 Ireland
+     class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200
+       {% if country == 'ie' %}text-white{% else %}text-zinc-500 hover:text-zinc-300{% endif %}"
+     {% if country == 'ie' %}style="background: rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.4);"{% endif %}>
+    🇮🇪 <span>Ireland</span>
   </a>
 </div>
 
 <!-- Price cards grid -->
 <section class="mb-10">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-sm font-semibold text-zinc-400 uppercase tracking-widest">Current Prices</h2>
+  <div class="flex items-center gap-2 mb-5">
+    <h2 class="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Current Prices</h2>
+    <div class="flex-1 h-px" style="background: rgba(255,255,255,0.05);"></div>
   </div>
+
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
     {% for s in summaries %}
     <a href="/good/{{ s.slug }}"
-       class="group relative bg-[#13131a] border border-white/[0.07] rounded-xl p-4 hover:bg-[#1a1a24] hover:border-white/[0.12] transition-all duration-200 block overflow-hidden">
+       class="group relative border border-white/[0.07] rounded-xl p-4 hover:border-white/[0.13] transition-all duration-200 block overflow-hidden card-glow"
+       style="background: #0f0f18;">
 
-      <!-- Colored top accent bar based on trend -->
-      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl
-        {% if s.pct_change_1y is not none and s.pct_change_1y > 0 %}bg-rose-500
-        {% elif s.pct_change_1y is not none and s.pct_change_1y < 0 %}bg-emerald-500
-        {% else %}bg-zinc-700{% endif %}">
+      <!-- Gradient top accent based on trend -->
+      <div class="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl
+        {% if s.pct_change_1y is not none and s.pct_change_1y > 0 %}bg-gradient-to-r from-rose-500 to-rose-400
+        {% elif s.pct_change_1y is not none and s.pct_change_1y < 0 %}bg-gradient-to-r from-emerald-500 to-emerald-400
+        {% else %}bg-zinc-800{% endif %}">
       </div>
 
-      <!-- Header row -->
+      <!-- Header: emoji + badge -->
       <div class="flex items-start justify-between mb-3 mt-1">
-        <span class="text-xl leading-none">{{ s.emoji }}</span>
+        <span class="text-2xl leading-none">{{ s.emoji }}</span>
         {% if s.pct_change_1y is not none %}
-          <span class="text-xs font-bold px-1.5 py-0.5 rounded-md
+          <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-md price-num
             {% if s.pct_change_1y > 0 %}text-rose-400 bg-rose-500/10
             {% elif s.pct_change_1y < 0 %}text-emerald-400 bg-emerald-500/10
             {% else %}text-zinc-500 bg-zinc-700/30{% endif %}">
@@ -71,10 +82,10 @@
       </div>
 
       <!-- Name -->
-      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2 leading-tight">{{ s.name }}</div>
+      <div class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide mb-1.5 leading-tight">{{ s.name }}</div>
 
       <!-- Price -->
-      <div class="text-xl font-extrabold text-white leading-none mb-0.5">
+      <div class="text-[1.3rem] font-extrabold text-white leading-none mb-0.5 price-num">
         {% if s.latest_price is not none %}
           {% if s.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(s.latest_price) }}
         {% else %}
@@ -82,12 +93,12 @@
         {% endif %}
       </div>
       {% if s.latest_price is not none %}
-        <div class="text-xs text-zinc-600">{{ s.unit }}</div>
+        <div class="text-[11px] text-zinc-600">{{ s.unit }}</div>
       {% endif %}
 
-      <!-- Sparkline mini chart -->
+      <!-- Sparkline -->
       {% if s.sparkline %}
-        <div class="h-10 mt-3 -mx-1"
+        <div class="h-10 mt-3 -mx-1 opacity-60 group-hover:opacity-90 transition-opacity duration-200"
              data-sparkline="{{ sparklines[s.slug] }}"
              id="spark-{{ s.slug }}">
         </div>
@@ -100,12 +111,12 @@
 
 <!-- Overview index chart -->
 <section class="mb-10">
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl overflow-hidden">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 pt-5 pb-4 border-b border-white/[0.05]">
+  <div class="border border-white/[0.07] rounded-xl overflow-hidden" style="background: #0f0f18;">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-6 pt-5 pb-4 border-b border-white/[0.05]">
       <div>
         <h2 class="text-sm font-semibold text-white">Price Index Over Time</h2>
         <p class="text-xs text-zinc-500 mt-0.5">
-          Normalised to <span class="text-zinc-300 font-medium">100</span> at earliest recorded price — compare trajectories across all goods.
+          Normalised to <span class="text-zinc-300 font-semibold">100</span> at earliest recorded price — compare trajectories across all goods.
         </p>
       </div>
     </div>
@@ -119,9 +130,9 @@
   const DARK = {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor:  'rgba(0,0,0,0)',
-    font:   { color: '#71717a', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 11 },
-    xaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
-    yaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
+    font:   { color: '#71717a', family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 11 },
+    xaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.07)', tickfont: { color: '#52525b' } },
+    yaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.07)', tickfont: { color: '#52525b' } },
     legend: { font: { color: '#a1a1aa' }, bgcolor: 'rgba(0,0,0,0)' },
     margin: { t: 20, r: 20, b: 40, l: 50 },
   };

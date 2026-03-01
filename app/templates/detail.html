@@ -5,26 +5,31 @@
 {% block content %}
 
 <!-- Breadcrumb -->
-<nav class="text-xs text-zinc-600 mt-6 mb-5 flex items-center gap-1.5">
+<nav class="text-xs text-zinc-600 mt-7 mb-5 flex items-center gap-1.5">
   <a href="/" class="hover:text-zinc-300 transition-colors">Home</a>
-  <span class="text-zinc-700">›</span>
-  <span class="text-zinc-400">{{ detail.name }}</span>
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-zinc-700 flex-shrink-0" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+  <span class="text-zinc-400 font-medium">{{ detail.name }}</span>
 </nav>
 
 <!-- Page header card -->
-<div class="bg-[#13131a] border border-white/[0.07] rounded-xl px-6 py-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 relative overflow-hidden">
-  <!-- subtle background glow -->
-  <div class="absolute -top-12 -left-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="border border-white/[0.07] rounded-xl px-6 py-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 relative overflow-hidden"
+     style="background: #0f0f18;">
+  <!-- Ambient glow -->
+  <div class="absolute -top-16 -left-16 w-56 h-56 rounded-full blur-3xl pointer-events-none"
+       style="background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);"></div>
 
   <div class="relative">
-    <div class="flex items-center gap-3 mb-2">
-      <span class="text-3xl leading-none">{{ detail.emoji }}</span>
+    <div class="flex items-center gap-4 mb-1">
+      <span class="text-4xl leading-none">{{ detail.emoji }}</span>
       <div>
-        <h1 class="text-xl md:text-2xl font-extrabold text-white leading-tight">{{ detail.name }}</h1>
-        <p class="text-xs text-zinc-500 mt-0.5">
-          {{ detail.unit }}
-          <span class="mx-1.5 text-zinc-700">·</span>
-          Source: <span class="text-zinc-400 font-medium">{{ detail.source | upper }}</span>
+        <h1 class="text-xl md:text-2xl font-extrabold text-white leading-tight tracking-tight">{{ detail.name }}</h1>
+        <p class="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
+          <span>{{ detail.unit }}</span>
+          <span class="text-zinc-700">·</span>
+          <span>Source: <span class="text-zinc-400 font-semibold">{{ detail.source | upper }}</span></span>
         </p>
       </div>
     </div>
@@ -32,10 +37,10 @@
 
   {% if detail.latest_price is not none %}
   <div class="relative sm:text-right">
-    <div class="text-4xl font-extrabold text-white leading-none tracking-tight">
+    <div class="text-4xl md:text-5xl font-extrabold text-white leading-none tracking-tight price-num">
       {% if detail.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(detail.latest_price) }}
     </div>
-    <div class="text-xs text-zinc-500 mt-1.5">{{ detail.latest_period }}</div>
+    <div class="text-xs text-zinc-500 mt-2 price-num">{{ detail.latest_period }}</div>
   </div>
   {% endif %}
 </div>
@@ -44,17 +49,17 @@
 {% if detail.latest_price is not none %}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">Current</div>
-    <div class="text-xl font-extrabold text-white">
+    <div class="text-xl font-extrabold text-white price-num">
       {% if detail.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(detail.latest_price) }}
     </div>
   </div>
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">1 Month</div>
     {% if detail.pct_change_1m is not none %}
-      <div class="text-xl font-extrabold
+      <div class="text-xl font-extrabold price-num
         {% if detail.pct_change_1m > 0 %}text-rose-400{% elif detail.pct_change_1m < 0 %}text-emerald-400{% else %}text-zinc-400{% endif %}">
         {% if detail.pct_change_1m > 0 %}+{% endif %}{{ detail.pct_change_1m }}%
       </div>
@@ -63,10 +68,10 @@
     {% endif %}
   </div>
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">6 Months</div>
     {% if detail.pct_change_6m is not none %}
-      <div class="text-xl font-extrabold
+      <div class="text-xl font-extrabold price-num
         {% if detail.pct_change_6m > 0 %}text-rose-400{% elif detail.pct_change_6m < 0 %}text-emerald-400{% else %}text-zinc-400{% endif %}">
         {% if detail.pct_change_6m > 0 %}+{% endif %}{{ detail.pct_change_6m }}%
       </div>
@@ -75,10 +80,10 @@
     {% endif %}
   </div>
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">1 Year</div>
     {% if detail.pct_change_1y is not none %}
-      <div class="text-xl font-extrabold
+      <div class="text-xl font-extrabold price-num
         {% if detail.pct_change_1y > 0 %}text-rose-400{% elif detail.pct_change_1y < 0 %}text-emerald-400{% else %}text-zinc-400{% endif %}">
         {% if detail.pct_change_1y > 0 %}+{% endif %}{{ detail.pct_change_1y }}%
       </div>
@@ -87,16 +92,16 @@
     {% endif %}
   </div>
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">All-Time High</div>
-    <div class="text-xl font-extrabold text-rose-400">
+    <div class="text-xl font-extrabold text-rose-400 price-num">
       {% if detail.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(detail.all_time_high) }}
     </div>
   </div>
 
-  <div class="bg-[#13131a] border border-white/[0.07] rounded-xl p-4 text-center">
+  <div class="border border-white/[0.07] rounded-xl p-4 text-center" style="background: #0f0f18;">
     <div class="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">All-Time Low</div>
-    <div class="text-xl font-extrabold text-emerald-400">
+    <div class="text-xl font-extrabold text-emerald-400 price-num">
       {% if detail.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(detail.all_time_low) }}
     </div>
   </div>
@@ -105,8 +110,8 @@
 {% endif %}
 
 <!-- Price history chart -->
-<div class="bg-[#13131a] border border-white/[0.07] rounded-xl overflow-hidden mb-6">
-  <div class="px-5 pt-5 pb-4 border-b border-white/[0.05]">
+<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-6" style="background: #0f0f18;">
+  <div class="px-6 pt-5 pb-4 border-b border-white/[0.05]">
     <h2 class="text-sm font-semibold text-white">Price History</h2>
   </div>
   {% if detail.history %}
@@ -114,34 +119,36 @@
   {% else %}
     <div class="text-center py-16 text-zinc-600">
       <p>No price history available yet.</p>
-      <p class="mt-2 text-xs"><a href="/health" class="text-blue-400 hover:underline">Check app status →</a></p>
+      <p class="mt-2 text-xs"><a href="/health" class="text-indigo-400 hover:underline">Check app status →</a></p>
     </div>
   {% endif %}
 </div>
 
 <!-- Recent data table -->
 {% if detail.history %}
-<div class="bg-[#13131a] border border-white/[0.07] rounded-xl overflow-hidden mb-6">
-  <div class="px-5 pt-5 pb-4 border-b border-white/[0.05]">
+<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-6" style="background: #0f0f18;">
+  <div class="px-6 pt-5 pb-4 border-b border-white/[0.05]">
     <h2 class="text-sm font-semibold text-white">Recent Snapshots</h2>
   </div>
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-white/[0.05]">
-          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Period</th>
-          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Price (USD)</th>
-          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Collected At</th>
+          <th class="px-6 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Period</th>
+          <th class="px-6 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
+            Price ({% if detail.currency == "EUR" %}EUR{% else %}USD{% endif %})
+          </th>
+          <th class="px-6 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Collected At</th>
         </tr>
       </thead>
       <tbody>
         {% for snap in detail.history[-20:] | reverse %}
-        <tr class="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-          <td class="px-5 py-3 text-zinc-400">{{ snap.period_label }}</td>
-          <td class="px-5 py-3 font-semibold text-white">
+        <tr class="border-b border-white/[0.04] hover:bg-white/[0.025] transition-colors">
+          <td class="px-6 py-3 text-zinc-400 price-num">{{ snap.period_label }}</td>
+          <td class="px-6 py-3 font-semibold text-white price-num">
             {% if detail.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(snap.price_usd) }}
           </td>
-          <td class="px-5 py-3 text-xs text-zinc-600">{{ snap.collected_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td class="px-6 py-3 text-xs text-zinc-600 price-num">{{ snap.collected_at.strftime("%Y-%m-%d %H:%M") }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -151,21 +158,28 @@
 {% endif %}
 
 <!-- Data source note -->
-<div class="text-xs text-zinc-600 bg-[#13131a] border border-white/[0.07] rounded-xl px-5 py-3 mb-8">
-  <span class="text-zinc-500 font-medium">Data source:</span>
-  {% if detail.source == "bls" %}
-    <a href="https://www.bls.gov/developers/" target="_blank" rel="noopener" class="text-blue-400 hover:underline ml-1">
-      U.S. Bureau of Labor Statistics — Average Retail Prices API
-    </a>
-    <span class="text-zinc-700 ml-1">(monthly, US city average)</span>
-  {% elif detail.source == "eia" %}
-    <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener" class="text-blue-400 hover:underline ml-1">
-      U.S. Energy Information Administration — Open Data API
-    </a>
-    <span class="text-zinc-700 ml-1">(weekly, US national average)</span>
-  {% else %}
-    <span class="ml-1">Manually maintained — verified periodically against public price listings.</span>
-  {% endif %}
+<div class="text-xs text-zinc-600 border border-white/[0.07] rounded-xl px-5 py-3 mb-8 flex items-start gap-2"
+     style="background: #0f0f18;">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700 flex-shrink-0 mt-0.5" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <span>
+    <span class="text-zinc-500 font-medium">Data source:</span>
+    {% if detail.source == "bls" %}
+      <a href="https://www.bls.gov/developers/" target="_blank" rel="noopener" class="text-indigo-400 hover:underline ml-1">
+        U.S. Bureau of Labor Statistics — Average Retail Prices API
+      </a>
+      <span class="text-zinc-700 ml-1">(monthly, US city average)</span>
+    {% elif detail.source == "eia" %}
+      <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener" class="text-indigo-400 hover:underline ml-1">
+        U.S. Energy Information Administration — Open Data API
+      </a>
+      <span class="text-zinc-700 ml-1">(weekly, US national average)</span>
+    {% else %}
+      <span class="ml-1">Manually maintained — verified periodically against public price listings.</span>
+    {% endif %}
+  </span>
 </div>
 
 <!-- Inject chart and render -->
@@ -173,9 +187,9 @@
   const DARK = {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor:  'rgba(0,0,0,0)',
-    font:   { color: '#71717a', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 11 },
-    xaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
-    yaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.08)', tickfont: { color: '#52525b' } },
+    font:   { color: '#71717a', family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 11 },
+    xaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.07)', tickfont: { color: '#52525b' } },
+    yaxis:  { gridcolor: 'rgba(255,255,255,0.04)', linecolor: 'rgba(255,255,255,0.07)', tickfont: { color: '#52525b' } },
     legend: { font: { color: '#a1a1aa' }, bgcolor: 'rgba(0,0,0,0)' },
     margin: { t: 20, r: 20, b: 40, l: 60 },
   };
