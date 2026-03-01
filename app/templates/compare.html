@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}US vs Ireland — Real Life Index{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="mt-10 mb-8 fade-up">
+  <p class="text-[11px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-2" style="color: #818cf8;">
+    <span class="inline-block w-1 h-3.5 rounded-full" style="background: #818cf8;"></span>
+    Price Comparison
+  </p>
+  <h1 class="text-3xl md:text-[2.4rem] font-extrabold gradient-text leading-tight tracking-tight">
+    United States vs Ireland
+  </h1>
+  <p class="text-sm text-zinc-500 mt-2 max-w-xl leading-relaxed">
+    Equivalent everyday goods compared side by side in their native currencies.
+    Prices are not FX-adjusted — each reflects local retail cost.
+  </p>
+</div>
+
+<!-- Comparison table -->
+{% set ns = namespace(current_category='') %}
+<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-8" style="background: #0f0f18;">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <th class="px-5 py-3.5 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest w-8"></th>
+          <th class="px-5 py-3.5 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Item</th>
+          <!-- US columns -->
+          <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
+            <span class="flex items-center justify-end gap-1.5">🇺🇸 <span>Price (USD)</span></span>
+          </th>
+          <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">1Y US</th>
+          <!-- IE columns -->
+          <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
+            <span class="flex items-center justify-end gap-1.5">🇮🇪 <span>Price (EUR)</span></span>
+          </th>
+          <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">1Y IE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pair in pairs %}
+
+        {# Category divider row #}
+        {% if pair.category != ns.current_category %}
+        {% set ns.current_category = pair.category %}
+        <tr style="background: rgba(255,255,255,0.015);">
+          <td colspan="6" class="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+            {% if pair.category == 'grocery' %}🛒 Groceries
+            {% elif pair.category == 'fuel' %}⛽ Fuel
+            {% elif pair.category == 'dining' %}🍽️ Dining
+            {% elif pair.category == 'subscription' %}📺 Subscriptions
+            {% else %}{{ pair.category | title }}{% endif %}
+          </td>
+        </tr>
+        {% endif %}
+
+        {# Data row #}
+        <tr class="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+
+          <!-- Emoji -->
+          <td class="px-5 py-3.5 text-xl leading-none text-center">
+            {{ (pair.us or pair.ie).emoji }}
+          </td>
+
+          <!-- Name + unit -->
+          <td class="px-5 py-3.5">
+            <div class="font-medium text-white">{{ (pair.us or pair.ie).name if pair.us else pair.ie.name }}</div>
+            <div class="text-xs text-zinc-600 mt-0.5">
+              {% if pair.us %}🇺🇸 {{ pair.us.unit }}{% endif %}
+              {% if pair.us and pair.ie %}<span class="mx-1 text-zinc-800">·</span>{% endif %}
+              {% if pair.ie %}🇮🇪 {{ pair.ie.unit }}{% endif %}
+            </div>
+          </td>
+
+          <!-- US price -->
+          <td class="px-5 py-3.5 text-right">
+            {% if pair.us and pair.us.latest_price is not none %}
+              <a href="/good/{{ pair.us.slug }}" class="font-semibold text-white price-num hover:text-indigo-300 transition-colors">
+                ${{ "%.2f"|format(pair.us.latest_price) }}
+              </a>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+
+          <!-- US 1Y change -->
+          <td class="px-5 py-3.5 text-right">
+            {% if pair.us and pair.us.pct_change_1y is not none %}
+              <span class="text-xs font-bold price-num
+                {% if pair.us.pct_change_1y > 0 %}text-rose-400
+                {% elif pair.us.pct_change_1y < 0 %}text-emerald-400
+                {% else %}text-zinc-500{% endif %}">
+                {% if pair.us.pct_change_1y > 0 %}+{% endif %}{{ pair.us.pct_change_1y }}%
+              </span>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+
+          <!-- IE price -->
+          <td class="px-5 py-3.5 text-right">
+            {% if pair.ie and pair.ie.latest_price is not none %}
+              <a href="/good/{{ pair.ie.slug }}" class="font-semibold text-white price-num hover:text-indigo-300 transition-colors">
+                €{{ "%.2f"|format(pair.ie.latest_price) }}
+              </a>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+
+          <!-- IE 1Y change -->
+          <td class="px-5 py-3.5 text-right">
+            {% if pair.ie and pair.ie.pct_change_1y is not none %}
+              <span class="text-xs font-bold price-num
+                {% if pair.ie.pct_change_1y > 0 %}text-rose-400
+                {% elif pair.ie.pct_change_1y < 0 %}text-emerald-400
+                {% else %}text-zinc-500{% endif %}">
+                {% if pair.ie.pct_change_1y > 0 %}+{% endif %}{{ pair.ie.pct_change_1y }}%
+              </span>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Methodology note -->
+<div class="text-xs text-zinc-600 border border-white/[0.07] rounded-xl px-5 py-3 mb-8 flex items-start gap-2"
+     style="background: #0f0f18;">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700 flex-shrink-0 mt-0.5" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <span>
+    <span class="text-zinc-400 font-medium">Note:</span>
+    Prices are shown in local currencies (USD and EUR) and are
+    <span class="text-zinc-400 font-medium">not adjusted for exchange rates</span>.
+    Items may not be identical — units and product specs differ between countries.
+    Click any price to view its full history.
+  </span>
+</div>
+
+{% endblock %}

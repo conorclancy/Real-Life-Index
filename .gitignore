@@ -19,3 +19,6 @@ wheels/
 # Editor / OS noise
 .DS_Store
 Thumbs.db
+.claude/
+.Claude_restrictions.md
+.gitignore
