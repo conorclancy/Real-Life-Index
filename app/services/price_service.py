@@ -369,6 +369,46 @@ def build_sparkline_json(prices: list[float]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Comparison builder (US vs Ireland side-by-side)
+# ---------------------------------------------------------------------------
+
+# Maps US slug → equivalent IE slug.  Order determines table row order.
+_COMPARISON_PAIRS: list[tuple[str, str]] = [
+    ("eggs",        "ie_eggs"),
+    ("milk",        "ie_milk"),
+    ("bread",       "ie_bread"),
+    ("ground_beef", "ie_mince"),
+    ("chicken",     "ie_chicken"),
+    ("coffee",      "ie_coffee"),
+    ("beer",        "ie_beer"),
+    ("gasoline",    "ie_petrol"),
+    ("mcdonalds",   "ie_supermacs"),
+    ("netflix",     "ie_netflix"),
+]
+
+
+async def build_comparison_pairs(db: AsyncSession) -> list[dict]:
+    """
+    Return a list of {us, ie, category} dicts pairing equivalent goods from
+    both countries, ordered as defined in _COMPARISON_PAIRS.
+    """
+    us_summaries = await build_good_summaries(db, country="us")
+    ie_summaries = await build_good_summaries(db, country="ie")
+
+    us_by_slug = {s.slug: s for s in us_summaries}
+    ie_by_slug = {s.slug: s for s in ie_summaries}
+
+    pairs = []
+    for us_slug, ie_slug in _COMPARISON_PAIRS:
+        us = us_by_slug.get(us_slug)
+        ie = ie_by_slug.get(ie_slug)
+        if us or ie:
+            category = (us or ie).category
+            pairs.append({"us": us, "ie": ie, "category": category})
+    return pairs
+
+
+# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 

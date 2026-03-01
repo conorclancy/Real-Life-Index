@@ -47,18 +47,105 @@
   </a>
 </div>
 
-<!-- Price cards grid -->
-<section class="mb-10">
-  <div class="flex items-center gap-2 mb-5">
-    <h2 class="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Current Prices</h2>
-    <div class="flex-1 h-px" style="background: rgba(255,255,255,0.05);"></div>
+<!-- ============================================================ -->
+<!-- Top Movers Panel -->
+<!-- ============================================================ -->
+{% set ranked = summaries | rejectattr('pct_change_1y', 'none') | list %}
+{% if ranked | length > 1 %}
+{% set risers = ranked | sort(attribute='pct_change_1y', reverse=True) | list %}
+{% set fallers = ranked | sort(attribute='pct_change_1y') | list %}
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+
+  <!-- Biggest Risers -->
+  <div class="border border-white/[0.07] rounded-xl overflow-hidden" style="background: #0f0f18;">
+    <div class="px-4 py-3 border-b border-white/[0.05] flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-rose-400 flex-shrink-0" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+        <polyline points="17 6 23 6 23 12"/>
+      </svg>
+      <span class="text-xs font-semibold text-rose-400">Biggest Risers</span>
+      <span class="text-[10px] text-zinc-600 ml-auto">1-year change</span>
+    </div>
+    {% for s in risers[:3] %}
+    <a href="/good/{{ s.slug }}"
+       class="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.025] transition-colors
+              {% if not loop.last %}border-b border-white/[0.04]{% endif %}">
+      <span class="text-xl flex-shrink-0 leading-none">{{ s.emoji }}</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium text-white truncate">{{ s.name }}</div>
+        <div class="text-xs text-zinc-500 price-num">
+          {% if s.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(s.latest_price) }}
+        </div>
+      </div>
+      <span class="text-sm font-bold price-num flex-shrink-0
+        {% if s.pct_change_1y > 0 %}text-rose-400{% elif s.pct_change_1y < 0 %}text-emerald-400{% else %}text-zinc-400{% endif %}">
+        {% if s.pct_change_1y > 0 %}+{% endif %}{{ s.pct_change_1y }}%
+      </span>
+    </a>
+    {% endfor %}
   </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+  <!-- Biggest Fallers -->
+  <div class="border border-white/[0.07] rounded-xl overflow-hidden" style="background: #0f0f18;">
+    <div class="px-4 py-3 border-b border-white/[0.05] flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+        <polyline points="17 18 23 18 23 12"/>
+      </svg>
+      <span class="text-xs font-semibold text-emerald-400">Biggest Fallers</span>
+      <span class="text-[10px] text-zinc-600 ml-auto">1-year change</span>
+    </div>
+    {% for s in fallers[:3] %}
+    <a href="/good/{{ s.slug }}"
+       class="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.025] transition-colors
+              {% if not loop.last %}border-b border-white/[0.04]{% endif %}">
+      <span class="text-xl flex-shrink-0 leading-none">{{ s.emoji }}</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium text-white truncate">{{ s.name }}</div>
+        <div class="text-xs text-zinc-500 price-num">
+          {% if s.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(s.latest_price) }}
+        </div>
+      </div>
+      <span class="text-sm font-bold price-num flex-shrink-0
+        {% if s.pct_change_1y < 0 %}text-emerald-400{% elif s.pct_change_1y > 0 %}text-rose-400{% else %}text-zinc-400{% endif %}">
+        {% if s.pct_change_1y > 0 %}+{% endif %}{{ s.pct_change_1y }}%
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+
+</section>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- Price cards grid -->
+<!-- ============================================================ -->
+<section class="mb-10">
+  <!-- Section header + sort controls -->
+  <div class="flex items-center gap-2 mb-5">
+    <h2 class="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest flex-shrink-0">Current Prices</h2>
+    <div class="flex-1 h-px" style="background: rgba(255,255,255,0.05);"></div>
+    <!-- Sort buttons -->
+    <div class="flex items-center gap-0.5 flex-shrink-0">
+      <span class="text-[10px] text-zinc-700 mr-1.5">Sort:</span>
+      <button data-sort="default"      onclick="sortCards('default')"      class="sort-btn text-[11px] px-2 py-1 rounded-md text-zinc-400 hover:text-white transition-colors">Default</button>
+      <button data-sort="price-desc"   onclick="sortCards('price-desc')"   class="sort-btn text-[11px] px-2 py-1 rounded-md text-zinc-500 hover:text-white transition-colors">Price ↑</button>
+      <button data-sort="price-asc"    onclick="sortCards('price-asc')"    class="sort-btn text-[11px] px-2 py-1 rounded-md text-zinc-500 hover:text-white transition-colors">Price ↓</button>
+      <button data-sort="change-desc"  onclick="sortCards('change-desc')"  class="sort-btn text-[11px] px-2 py-1 rounded-md text-zinc-500 hover:text-white transition-colors">Risen ↑</button>
+      <button data-sort="change-asc"   onclick="sortCards('change-asc')"   class="sort-btn text-[11px] px-2 py-1 rounded-md text-zinc-500 hover:text-white transition-colors">Fallen ↓</button>
+    </div>
+  </div>
+
+  <div id="cards-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
     {% for s in summaries %}
     <a href="/good/{{ s.slug }}"
        class="group relative border border-white/[0.07] rounded-xl p-4 hover:border-white/[0.13] transition-all duration-200 block overflow-hidden card-glow"
-       style="background: #0f0f18;">
+       style="background: #0f0f18;"
+       data-index="{{ loop.index0 }}"
+       data-price="{{ s.latest_price if s.latest_price is not none else '' }}"
+       data-change="{{ s.pct_change_1y if s.pct_change_1y is not none else '' }}">
 
       <!-- Gradient top accent based on trend -->
       <div class="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl
@@ -155,6 +242,41 @@
       Plotly.newPlot(el.id, d.data, sl, { responsive: true, displayModeBar: false, staticPlot: true });
     });
   });
+
+  // ── Sort / filter ─────────────────────────────────────────────
+  function sortCards(by) {
+    const grid = document.getElementById('cards-grid');
+    const cards = Array.from(grid.querySelectorAll(':scope > a'));
+
+    const num = (el, attr) => {
+      const v = el.dataset[attr];
+      return v === '' || v === undefined ? null : +v;
+    };
+
+    const cmp = (a, b, ascending) => {
+      if (a === null && b === null) return 0;
+      if (a === null) return 1;   // nulls always last
+      if (b === null) return -1;
+      return ascending ? a - b : b - a;
+    };
+
+    cards.sort((a, b) => {
+      if (by === 'default')     return num(a, 'index') - num(b, 'index');
+      if (by === 'price-desc')  return cmp(num(a, 'price'),  num(b, 'price'),  false);
+      if (by === 'price-asc')   return cmp(num(a, 'price'),  num(b, 'price'),  true);
+      if (by === 'change-desc') return cmp(num(a, 'change'), num(b, 'change'), false);
+      if (by === 'change-asc')  return cmp(num(a, 'change'), num(b, 'change'), true);
+      return 0;
+    });
+
+    cards.forEach(c => grid.appendChild(c));
+
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+      const active = btn.dataset.sort === by;
+      btn.style.color      = active ? '#fff' : '';
+      btn.style.background = active ? 'rgba(255,255,255,0.08)' : '';
+    });
+  }
 </script>
 
 {% endblock %}

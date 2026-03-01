@@ -72,6 +72,25 @@ async def dashboard_home(
     )
 
 
+@router.get("/compare", response_class=HTMLResponse)
+async def compare_page(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Side-by-side comparison of equivalent goods across the US and Ireland baskets.
+    """
+    from app import templates  # noqa: PLC0415
+
+    pairs = await price_service.build_comparison_pairs(db)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="compare.html",
+        context={"pairs": pairs},
+    )
+
+
 @router.get("/good/{slug}", response_class=HTMLResponse)
 async def good_detail(
     slug: str,
