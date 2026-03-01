@@ -14,28 +14,67 @@
     United States vs Ireland
   </h1>
   <p class="text-sm text-zinc-500 mt-2 max-w-xl leading-relaxed">
-    Equivalent everyday goods compared side by side in their native currencies.
-    Prices are not FX-adjusted — each reflects local retail cost.
+    Equivalent everyday goods compared side by side. Use the currency toggle to
+    view all prices in USD or EUR.
   </p>
+</div>
+
+<!-- Controls row: currency toggle + FX rate info -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+
+  <!-- Currency toggle -->
+  <div class="flex p-1 rounded-xl border border-white/[0.07] w-fit" style="background: rgba(255,255,255,0.03);">
+    <button data-mode="native" onclick="switchCurrency('native')"
+            class="currency-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 text-white"
+            style="background: rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.4);">
+      🌍 Native
+    </button>
+    <button data-mode="usd" onclick="switchCurrency('usd')"
+            class="currency-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 text-zinc-500 hover:text-zinc-300">
+      🇺🇸 All USD
+    </button>
+    <button data-mode="eur" onclick="switchCurrency('eur')"
+            class="currency-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 text-zinc-500 hover:text-zinc-300">
+      🇮🇪 All EUR
+    </button>
+  </div>
+
+  <!-- Live FX rate badge -->
+  <div class="flex items-center gap-2 text-xs rounded-lg px-3 py-2 border border-white/[0.07]"
+       style="background: rgba(255,255,255,0.03);">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-zinc-600 flex-shrink-0" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+    <span class="text-zinc-500">
+      <span class="text-zinc-300 font-semibold price-num">1 USD = €{{ "%.4f"|format(fx_rate) }}</span>
+      <span class="mx-1.5 text-zinc-700">·</span>
+      <span class="text-zinc-600">1 EUR = ${{ "%.4f"|format(1 / fx_rate) }}</span>
+      <span class="mx-1.5 text-zinc-700">·</span>
+      {% if fx_date == "fallback" %}
+        <span class="text-amber-500/70">estimated rate</span>
+      {% else %}
+        ECB rate · {{ fx_date }}
+      {% endif %}
+    </span>
+  </div>
 </div>
 
 <!-- Comparison table -->
 {% set ns = namespace(current_category='') %}
-<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-8" style="background: #0f0f18;">
+<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-6" style="background: #0f0f18;">
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-          <th class="px-5 py-3.5 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest w-8"></th>
+          <th class="px-5 py-3.5 text-left w-10"></th>
           <th class="px-5 py-3.5 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Item</th>
-          <!-- US columns -->
           <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
-            <span class="flex items-center justify-end gap-1.5">🇺🇸 <span>Price (USD)</span></span>
+            <span class="flex items-center justify-end gap-1.5">🇺🇸 Price</span>
           </th>
           <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">1Y US</th>
-          <!-- IE columns -->
           <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
-            <span class="flex items-center justify-end gap-1.5">🇮🇪 <span>Price (EUR)</span></span>
+            <span class="flex items-center justify-end gap-1.5">🇮🇪 Price</span>
           </th>
           <th class="px-5 py-3.5 text-right text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">1Y IE</th>
         </tr>
@@ -65,9 +104,9 @@
             {{ (pair.us or pair.ie).emoji }}
           </td>
 
-          <!-- Name + unit -->
+          <!-- Name + units -->
           <td class="px-5 py-3.5">
-            <div class="font-medium text-white">{{ (pair.us or pair.ie).name if pair.us else pair.ie.name }}</div>
+            <div class="font-medium text-white">{{ (pair.us or pair.ie).name }}</div>
             <div class="text-xs text-zinc-600 mt-0.5">
               {% if pair.us %}🇺🇸 {{ pair.us.unit }}{% endif %}
               {% if pair.us and pair.ie %}<span class="mx-1 text-zinc-800">·</span>{% endif %}
@@ -75,10 +114,15 @@
             </div>
           </td>
 
-          <!-- US price -->
+          <!-- US price cell (native: USD) -->
           <td class="px-5 py-3.5 text-right">
             {% if pair.us and pair.us.latest_price is not none %}
-              <a href="/good/{{ pair.us.slug }}" class="font-semibold text-white price-num hover:text-indigo-300 transition-colors">
+              <a href="/good/{{ pair.us.slug }}"
+                 class="price-cell font-semibold text-white price-num hover:text-indigo-300 transition-colors"
+                 data-native-sym="$"
+                 data-native="{{ "%.2f"|format(pair.us.latest_price) }}"
+                 data-usd="{{ "%.2f"|format(pair.us.latest_price) }}"
+                 data-eur="{{ "%.2f"|format(pair.us.latest_price * fx_rate) }}">
                 ${{ "%.2f"|format(pair.us.latest_price) }}
               </a>
             {% else %}
@@ -86,7 +130,7 @@
             {% endif %}
           </td>
 
-          <!-- US 1Y change -->
+          <!-- US 1Y % change -->
           <td class="px-5 py-3.5 text-right">
             {% if pair.us and pair.us.pct_change_1y is not none %}
               <span class="text-xs font-bold price-num
@@ -100,10 +144,15 @@
             {% endif %}
           </td>
 
-          <!-- IE price -->
+          <!-- IE price cell (native: EUR) -->
           <td class="px-5 py-3.5 text-right">
             {% if pair.ie and pair.ie.latest_price is not none %}
-              <a href="/good/{{ pair.ie.slug }}" class="font-semibold text-white price-num hover:text-indigo-300 transition-colors">
+              <a href="/good/{{ pair.ie.slug }}"
+                 class="price-cell font-semibold text-white price-num hover:text-indigo-300 transition-colors"
+                 data-native-sym="€"
+                 data-native="{{ "%.2f"|format(pair.ie.latest_price) }}"
+                 data-usd="{{ "%.2f"|format(pair.ie.latest_price / fx_rate) }}"
+                 data-eur="{{ "%.2f"|format(pair.ie.latest_price) }}">
                 €{{ "%.2f"|format(pair.ie.latest_price) }}
               </a>
             {% else %}
@@ -111,7 +160,7 @@
             {% endif %}
           </td>
 
-          <!-- IE 1Y change -->
+          <!-- IE 1Y % change -->
           <td class="px-5 py-3.5 text-right">
             {% if pair.ie and pair.ie.pct_change_1y is not none %}
               <span class="text-xs font-bold price-num
@@ -140,12 +189,39 @@
     <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
   </svg>
   <span>
-    <span class="text-zinc-400 font-medium">Note:</span>
-    Prices are shown in local currencies (USD and EUR) and are
-    <span class="text-zinc-400 font-medium">not adjusted for exchange rates</span>.
-    Items may not be identical — units and product specs differ between countries.
-    Click any price to view its full history.
+    Items may not be identical — units and product specifications differ between countries.
+    Exchange rate is sourced from the
+    <a href="https://www.frankfurter.app" target="_blank" rel="noopener" class="text-indigo-400 hover:underline">
+      European Central Bank via frankfurter.app
+    </a>
+    and cached for up to 1 hour. Click any price to view its full history.
   </span>
 </div>
+
+<!-- Currency toggle JS -->
+<script>
+  const SYMS = { usd: '$', eur: '€' };
+
+  function switchCurrency(mode) {
+    document.querySelectorAll('.price-cell').forEach(function (el) {
+      var sym, val;
+      if (mode === 'native') {
+        sym = el.dataset.nativeSym;
+        val = el.dataset.native;
+      } else {
+        sym = SYMS[mode];
+        val = el.dataset[mode];
+      }
+      el.textContent = sym + parseFloat(val).toFixed(2);
+    });
+
+    document.querySelectorAll('.currency-btn').forEach(function (btn) {
+      var active = btn.dataset.mode === mode;
+      btn.style.color      = active ? '#fff' : '';
+      btn.style.background = active ? 'rgba(255,255,255,0.08)' : '';
+      btn.style.boxShadow  = active ? '0 1px 3px rgba(0,0,0,0.4)' : '';
+    });
+  }
+</script>
 
 {% endblock %}

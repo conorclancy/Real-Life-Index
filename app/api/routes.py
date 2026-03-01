@@ -81,13 +81,19 @@ async def compare_page(
     Side-by-side comparison of equivalent goods across the US and Ireland baskets.
     """
     from app import templates  # noqa: PLC0415
+    from app.services import fx_service  # noqa: PLC0415
 
     pairs = await price_service.build_comparison_pairs(db)
+    fx_rate, fx_date = await fx_service.fetch_eur_per_usd()
 
     return templates.TemplateResponse(
         request=request,
         name="compare.html",
-        context={"pairs": pairs},
+        context={
+            "pairs": pairs,
+            "fx_rate": fx_rate,   # EUR per 1 USD  e.g. 0.9234
+            "fx_date": fx_date,   # "YYYY-MM-DD" or "fallback"
+        },
     )
 
 
