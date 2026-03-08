@@ -198,6 +198,8 @@
   document.addEventListener("DOMContentLoaded", function () {
     {% if detail.history %}
     const layout = Object.assign({}, detailData.layout, DARK);
+    layout.xaxis = Object.assign({}, detailData.layout.xaxis, DARK.xaxis);
+    layout.yaxis = Object.assign({}, detailData.layout.yaxis, DARK.yaxis);
     Plotly.newPlot("detail-chart", detailData.data, layout, { responsive: true, displayModeBar: true });
     {% endif %}
   });
