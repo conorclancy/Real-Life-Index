@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Collector Status — Real Life Index{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="mt-10 mb-8 fade-up">
+  <p class="text-[11px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-2" style="color: #818cf8;">
+    <span class="inline-block w-1 h-3.5 rounded-full" style="background: #818cf8;"></span>
+    Admin
+  </p>
+  <h1 class="text-3xl font-extrabold gradient-text leading-tight tracking-tight">Collector Status</h1>
+  <p class="text-sm text-zinc-500 mt-2 max-w-lg leading-relaxed">
+    Last successful snapshot and freshness for every tracked good.
+  </p>
+</div>
+
+<!-- Summary pills -->
+{% set ok_count    = statuses | selectattr('status', 'equalto', 'ok')      | list | length %}
+{% set stale_count = statuses | selectattr('status', 'equalto', 'stale')   | list | length %}
+{% set nodata_count = statuses | selectattr('status', 'equalto', 'no_data') | list | length %}
+<div class="flex flex-wrap gap-3 mb-8">
+  <div class="flex items-center gap-2 text-xs font-medium rounded-full px-4 py-2 border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+    {{ ok_count }} OK
+  </div>
+  {% if stale_count %}
+  <div class="flex items-center gap-2 text-xs font-medium rounded-full px-4 py-2 border border-amber-500/20 bg-amber-500/10 text-amber-400">
+    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+    {{ stale_count }} Stale
+  </div>
+  {% endif %}
+  {% if nodata_count %}
+  <div class="flex items-center gap-2 text-xs font-medium rounded-full px-4 py-2 border border-rose-500/20 bg-rose-500/10 text-rose-400">
+    <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+    {{ nodata_count }} No Data
+  </div>
+  {% endif %}
+</div>
+
+<!-- Status table -->
+<div class="border border-white/[0.07] rounded-xl overflow-hidden mb-10" style="background: #0f0f18;">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-white/[0.05]">
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Good</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Country</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Source</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Last Period</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Last Price</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Collected At</th>
+          <th class="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in statuses %}
+        <tr class="border-b border-white/[0.04] hover:bg-white/[0.025] transition-colors">
+
+          <!-- Good -->
+          <td class="px-5 py-3">
+            <a href="/good/{{ s.slug }}" class="flex items-center gap-2.5 group">
+              <span class="text-lg leading-none">{{ s.emoji }}</span>
+              <span class="text-white font-medium group-hover:text-indigo-400 transition-colors">{{ s.name }}</span>
+            </a>
+          </td>
+
+          <!-- Country -->
+          <td class="px-5 py-3 text-zinc-500 text-xs uppercase tracking-wide">
+            {% if s.country == "ie" %}🇮🇪 IE{% else %}🇺🇸 US{% endif %}
+          </td>
+
+          <!-- Source -->
+          <td class="px-5 py-3">
+            <span class="text-[11px] font-semibold text-zinc-400 bg-white/[0.04] border border-white/[0.07] rounded px-2 py-0.5 uppercase tracking-wide">
+              {{ s.source }}
+            </span>
+          </td>
+
+          <!-- Last Period -->
+          <td class="px-5 py-3 text-zinc-400 price-num text-xs">
+            {{ s.last_period or "—" }}
+          </td>
+
+          <!-- Last Price -->
+          <td class="px-5 py-3 font-semibold text-white price-num">
+            {% if s.last_price is not none %}
+              {% if s.currency == "EUR" %}€{% else %}${% endif %}{{ "%.2f"|format(s.last_price) }}
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Collected At -->
+          <td class="px-5 py-3 text-xs text-zinc-600 price-num">
+            {% if s.last_collected_at %}
+              {{ s.last_collected_at.strftime("%Y-%m-%d %H:%M") }}
+            {% else %}
+              <span class="text-zinc-700">Never</span>
+            {% endif %}
+          </td>
+
+          <!-- Status pill -->
+          <td class="px-5 py-3">
+            {% if s.status == "ok" %}
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>OK
+              </span>
+            {% elif s.status == "stale" %}
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Stale
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-full px-3 py-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>No Data
+              </span>
+            {% endif %}
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
