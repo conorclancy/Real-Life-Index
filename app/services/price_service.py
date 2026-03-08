@@ -409,6 +409,58 @@ async def build_comparison_pairs(db: AsyncSession) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Collector status builder (admin status page)
+# ---------------------------------------------------------------------------
+
+# How many days before a source is considered stale
+_STALE_THRESHOLDS: dict[str, int] = {
+    "bls":     35,   # Monthly BLS release
+    "eia":     10,   # Weekly EIA release
+    "lidl_ie": 35,
+    "aa_ie":   35,
+    "static":  60,
+}
+
+
+async def build_collector_status(db: AsyncSession) -> list[dict]:
+    """
+    For every tracked good, return the most recent snapshot's age and a
+    staleness classification: "ok", "stale", or "no_data".
+    """
+    goods = await get_all_goods(db)
+    rows = []
+    for good in goods:
+        result = await db.execute(
+            select(PriceSnapshot)
+            .where(PriceSnapshot.good_id == good.id)
+            .order_by(PriceSnapshot.collected_at.desc())
+            .limit(1)
+        )
+        snap = result.scalars().first()
+
+        if snap is None:
+            staleness = "no_data"
+        else:
+            age_days = (datetime.utcnow() - snap.collected_at).days
+            threshold = _STALE_THRESHOLDS.get(good.source, 35)
+            staleness = "ok" if age_days <= threshold else "stale"
+
+        rows.append({
+            "slug": good.slug,
+            "name": good.name,
+            "emoji": good.emoji,
+            "country": good.country,
+            "source": good.source,
+            "currency": good.currency,
+            "last_price": round(snap.price_usd, 2) if snap else None,
+            "last_period": snap.period_label if snap else None,
+            "last_collected_at": snap.collected_at if snap else None,
+            "status": staleness,
+        })
+    return rows
+
+
+# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 

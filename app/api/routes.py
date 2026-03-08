@@ -184,6 +184,25 @@ async def trigger_refresh(
     )
 
 
+@router.get("/admin/status", response_class=HTMLResponse)
+async def admin_status_page(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Read-only status page showing the last successful snapshot for every
+    tracked good, with a staleness classification.
+    """
+    from app import templates  # noqa: PLC0415
+
+    statuses = await price_service.build_collector_status(db)
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_status.html",
+        context={"statuses": statuses},
+    )
+
+
 @router.get("/health")
 async def health_check():
     """Simple health check endpoint — useful for uptime monitoring."""
