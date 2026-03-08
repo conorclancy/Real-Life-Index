@@ -318,6 +318,7 @@ def build_detail_chart_json(detail: GoodDetailSchema) -> str:
             rangeselector=dict(
                 buttons=[
                     dict(count=1, label="1M", step="month", stepmode="backward"),
+                    dict(count=3, label="3M", step="month", stepmode="backward"),
                     dict(count=6, label="6M", step="month", stepmode="backward"),
                     dict(count=1, label="1Y", step="year", stepmode="backward"),
                     dict(step="all", label="All"),
